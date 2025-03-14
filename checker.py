@@ -307,6 +307,7 @@ if __name__ == "__main__":
                                utest_filename=UTEST_FILENAME, assignment=ASSIGNMENT)
 
     try:
+        print("Waiting AI response...")
         parsed_json = json.loads(json_results)
 
         #!AI
