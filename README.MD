@@ -1,6 +1,7 @@
 # 🧑‍🏫 Herramienta de Corrección Automática para Exámenes de Programación
 
 ## 📝 Descripción
+
 Este proyecto es una **herramienta de corrección automática** para exámenes de programación y pruebas técnicas. La herramienta permite la corrección de programas basándose en *pruebas unitarias* y en *análisis semántico* de la calidad del código fuente, a través de un flujo de trabajo impulsado por IA.
 
 ## 🚀 Cómo utilizarlo
@@ -11,7 +12,7 @@ Para utilizar la herramienta, siga estos pasos:
 
 Respete la siguiente estructura de carpetas:
 
-```
+```bash
 📁 Directorio principal
 ├── 📁 parciales    (archivos de los estudiantes)
 ├── 📁 tests        (pruebas unitarias)
@@ -27,6 +28,7 @@ Cree un archivo de pruebas unitarias en la carpeta tests. Este archivo debe cont
 #! Necesaria para checker.py
 from exam import funcA, funcB, ..., funcN
 ```
+
 Debe crear una clase extendida de `unittest.TestCase` y definir los métodos de prueba para cada función a evaluar. Por ejemplo:
 
 ```python
@@ -62,7 +64,20 @@ Instale las dependencias usando pip:
 pip install -r requirements.txt
 ```
 
-### 6️⃣ Ejecución
+### 6️⃣ Configuracion de Checker
+
+Debe configurar el archivo checker.py con la siguientes constantes:
+
+```python
+UTEST_DIR = "tests" # Carpeta de pruebas unitarias
+UTEST_FILENAME = "ejB.test.py" # suite de tests a utilizar
+EXAMS_DIR = "parciales" # Carpeta de examenes
+ASSIGNMENT = "En el siguiente ejercicio debe..." # Consigna del ejercicio a evaluar
+```
+
+Si opto por la estructura de carpetas sugerida, no es necesario modificar estas constantes. Unicamente *ASSIGNMENT* .
+
+### 7️⃣ Ejecución
 
 Ejecute el script principal:
 
@@ -70,17 +85,35 @@ Ejecute el script principal:
 python checker.py
 ```
 
-### 7️⃣ Resultados
+### 8️⃣ Interpretación de resultados
 
-Verifique los resultados en la carpeta informes. Los informes se generan en formato Excel con todos los detalles de la evaluación.
+Los resultados se guardan automáticamente en la carpeta informes con el siguiente formato:
+
+- **Archivo Excel**: `informes/results_YYYYMMDD_HHMMSS.xlsx`
+- **Organización**: Un reporte por alumno con las siguientes secciones:
+  - 📊 **Resumen general**: Nombre, porcentaje de pruebas pasadas y nota sugerida
+  - 📝 **Informe detallado**: Análisis cualitativo del código por IA
+  - 🧪 **Pruebas individuales**: Lista de todas las pruebas con su resultado (PASSED/FAILED)
+  - 📈 **Confianza**: Nivel de certeza en la evaluación automática
+
+### 9️⃣ Solución de problemas comunes
+
+| Problema | Posible solución |
+|----------|-----------------|
+| ❌ **No se encuentran los archivos** | Verifique que los archivos estén en la carpeta parciales con extensión `.py` |
+| ❌ **Error de importación** | Verifique que el archivo de test tenga la línea `from exam import ...` |
+| ❌ **Sin respuesta del servicio IA** | Revise las credenciales en .env y su conexión a internet |
+| ❌ **No se generan informes** | Verifique que exista la carpeta informes con permisos de escritura |
 
 ## 👨‍💻 Desarrolladores
+
 - [Alejo Torres](https://github.com/AlejoTorres2001)
 
 ## 📚 Guía para alumnos
 
 Cada trabajo presentado debe respetar lo siguiente:
-- Entregar **un solo archivo** con su nombre y apellido y la extensión `.py`
+
+- Entregar **un solo archivo** con su nombre y apellido y la extensión`.py`
 - El archivo puede contener la cantidad de funciones que necesite para resolver el problema. Pero debe **respetar los nombres** de las funciones principales designadas para cada ejercicio.
 
 ### 🔹 Ejercicio Obligatorio 1 - Tema A
@@ -121,6 +154,7 @@ def ejemplo_funcion(a: int, b: str) -> List[int]:
 ```
 
 Significa:
+
 - Recibe dos argumentos: `a` de tipo entero y `b` de tipo string
 - Retorna una lista de enteros
 
@@ -172,6 +206,7 @@ def menu() -> None:
 ## 📊 Formato de evaluación
 
 Los resultados de la evaluación se presentan en un informe Excel detallado que incluye:
+
 - Resultados de las pruebas unitarias
 - Análisis automático del código
 - Calificación sugerida
