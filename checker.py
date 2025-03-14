@@ -275,23 +275,29 @@ def main_runner(exams_dir, utest_dir, utest_filename, assignment) -> str:
         return ""
 
     #! Loop over exams files - requires format studentname.py
-    for file in os.listdir(exams_dir):
-        if file.endswith(".py"):
-            student_module_path = os.path.join(exams_dir, file)
-            student_name = os.path.splitext(file)[0]
-            test_output = run_tests_for_student(
-                student_module_path, test_module_path, assignment)
+    python_files = [file for file in os.listdir(
+        exams_dir) if file.endswith(".py")]
 
-            if isinstance(test_output, list):  # Error case
-                final_results[student_name] = {
-                    "results": test_output,
-                    "exam": "",
-                    "testCode": "",
-                    "assignment": assignment
-                }
-            else:  # Success case
-                final_results[student_name] = test_output
+    print(f"Found {len(python_files)} valid python files...")
+    for i, file in enumerate(python_files, 1):
+        student_module_path = os.path.join(exams_dir, file)
+        student_name = os.path.splitext(file)[0]
+        print(
+            f"[{i}/{len(python_files)}] Running tests for student: {student_name}", file=sys.stderr)
+        test_output = run_tests_for_student(
+            student_module_path, test_module_path, assignment)
+        print(f"✓ Completed tests for: {student_name}", file=sys.stderr)
 
+        if isinstance(test_output, list):  # Error case
+            final_results[student_name] = {
+                "results": test_output,
+                "exam": "",
+                "testCode": "",
+                "assignment": assignment
+            }
+        else:  # Success case
+            final_results[student_name] = test_output
+    print("All tests completed.")
     return json.dumps(final_results, indent=4)
 
 
