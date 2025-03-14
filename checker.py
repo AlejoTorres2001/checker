@@ -343,17 +343,207 @@ if __name__ == "__main__":
                         test["reason"] = test["reason"].encode().decode(
                             "unicode_escape")
 
-        # Save formatted JSON response
+        #!Excel report
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        json_filename = f"informes/results_{timestamp}.json"
-        with open(json_filename, 'w', encoding='utf-8') as f:
-            json.dump(response_data, f, indent=4, ensure_ascii=False)
+        excel_filename = f"informes/results_{timestamp}.xlsx"
+        try:
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "Resultados de Exámenes"
 
-        print(f"Results saved to:")
-        print(f"- JSON: {json_filename}")
+            # Define styles
+            header_fill = PatternFill(
+                start_color="4472C4", end_color="4472C4", fill_type="solid")
+            passed_fill = PatternFill(
+                start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
+            failed_fill = PatternFill(
+                start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
+            error_fill = PatternFill(
+                start_color="FFEB9C", end_color="FFEB9C", fill_type="solid")
+            section_fill = PatternFill(
+                start_color="DDEBF7", end_color="DDEBF7", fill_type="solid")
 
-    except json.JSONDecodeError as e:
-        print(f"Error: Invalid JSON format: {e}")
+            header_font = Font(bold=True, color="FFFFFF")
+
+            border = Border(
+                left=Side(style='thin'),
+                right=Side(style='thin'),
+                top=Side(style='thin'),
+                bottom=Side(style='thin')
+            )
+
+            # Main headers to repeat for each student
+            main_headers = ["Nombre del Alumno", "Resultado Global",
+                            "Nota Sugerida", "Confianza", "Informe"]
+
+            # Set column widths
+            ws.column_dimensions['A'].width = 20
+            ws.column_dimensions['B'].width = 15
+            ws.column_dimensions['C'].width = 15
+            ws.column_dimensions['D'].width = 15
+            ws.column_dimensions['E'].width = 80
+
+            # Helper function to add headers
+            def add_main_headers(row_num):
+                for col_num, header in enumerate(main_headers, 1):
+                    cell = ws.cell(row=row_num, column=col_num)
+                    cell.value = header
+                    cell.font = header_font
+                    cell.fill = header_fill
+                    cell.alignment = Alignment(
+                        horizontal='center', vertical='center', wrap_text=True)
+                    cell.border = border
+                return row_num + 1
+
+            # Add title at the top of the document
+            title_row = 1
+            ws.merge_cells(start_row=title_row, start_column=1,
+                           end_row=title_row, end_column=5)
+            title_cell = ws.cell(row=title_row, column=1)
+            title_cell.value = "REPORTE DE EVALUACIONES"
+            title_cell.font = Font(bold=True, size=14)
+            title_cell.alignment = Alignment(horizontal='center')
+
+            # Starting row for first student
+            row_num = 3
+
+            if "data" in response_data:
+                for item in response_data["data"]:
+                    if "name" in item:
+                        # Add separator between students
+                        if row_num > 3:  # Not the first student
+                            ws.merge_cells(
+                                start_row=row_num, start_column=1, end_row=row_num, end_column=5)
+                            separator = ws.cell(row=row_num, column=1)
+                            separator.value = "───────────────────────────────────────────────────────────────"
+                            separator.alignment = Alignment(
+                                horizontal='center')
+                            row_num += 1
+
+                        # Add student section title
+                        ws.merge_cells(
+                            start_row=row_num, start_column=1, end_row=row_num, end_column=5)
+                        student_section = ws.cell(row=row_num, column=1)
+                        student_section.value = f"Estudiante: {item['name']}"
+                        student_section.font = Font(bold=True, size=12)
+                        student_section.fill = section_fill
+                        student_section.alignment = Alignment(
+                            horizontal='center')
+                        row_num += 1
+
+                        # Add main headers for this student
+                        row_num = add_main_headers(row_num)
+
+                        # Add student data
+                        ws.cell(row=row_num, column=1).value = item["name"]
+
+                        # Calculate test results
+                        if "testResults" in item:
+                            total_tests = len(item["testResults"])
+                            passed_tests = sum(
+                                1 for test in item["testResults"] if test["result"] == "PASSED")
+                            result_cell = ws.cell(row=row_num, column=2)
+                            result_cell.value = f"{passed_tests}/{total_tests} ({passed_tests * 100 // total_tests}%)"
+
+                            if passed_tests == total_tests:
+                                result_cell.fill = passed_fill
+                            elif passed_tests >= total_tests // 2:
+                                result_cell.fill = PatternFill(
+                                    start_color="FFEB9C", end_color="FFEB9C", fill_type="solid")
+                            else:
+                                result_cell.fill = failed_fill
+
+                        # Add output data
+                        if "output" in item:
+                            if "nota_sugerida" in item["output"]:
+                                nota_cell = ws.cell(row=row_num, column=3)
+                                nota_cell.value = item["output"]["nota_sugerida"]
+
+                                # Color based on grade
+                                if item["output"]["nota_sugerida"] >= 70:
+                                    nota_cell.fill = passed_fill
+                                elif item["output"]["nota_sugerida"] >= 60:
+                                    nota_cell.fill = PatternFill(
+                                        start_color="FFEB9C", end_color="FFEB9C", fill_type="solid")
+                                else:
+                                    nota_cell.fill = failed_fill
+
+                            if "confianza" in item["output"]:
+                                ws.cell(
+                                    row=row_num, column=4).value = item["output"]["confianza"]
+
+                            if "informe" in item["output"]:
+                                ws.cell(
+                                    row=row_num, column=5).value = item["output"]["informe"]
+                                ws.cell(row=row_num, column=5).alignment = Alignment(
+                                    wrap_text=True, vertical='top')
+
+                        # Add borders to all cells in the student data row
+                        for col in range(1, 6):
+                            ws.cell(row=row_num, column=col).border = border
+
+                        row_num += 2
+
+                        # Add detailed test results title
+                        ws.merge_cells(
+                            start_row=row_num, start_column=1, end_row=row_num, end_column=5)
+                        test_header = ws.cell(row=row_num, column=1)
+                        test_header.value = f"Resultados detallados de pruebas"
+                        test_header.font = Font(bold=True)
+                        test_header.fill = section_fill
+                        test_header.alignment = Alignment(horizontal='center')
+                        row_num += 1
+
+                        # Test results table headers
+                        test_headers = [
+                            "Prueba", "Descripción", "Resultado", "Razón"]
+                        for col_num, header in enumerate(test_headers, 1):
+                            cell = ws.cell(row=row_num, column=col_num)
+                            cell.value = header
+                            cell.font = Font(bold=True)
+                            cell.fill = section_fill
+                            cell.alignment = Alignment(horizontal='center')
+                            cell.border = border
+                        row_num += 1
+
+                        # Add test results
+                        if "testResults" in item:
+                            for test in item["testResults"]:
+                                ws.cell(row=row_num, column=1).value = test.get(
+                                    "test", "")
+                                ws.cell(row=row_num, column=2).value = test.get(
+                                    "description", "")
+
+                                result_cell = ws.cell(row=row_num, column=3)
+                                result_cell.value = test.get("result", "")
+                                if test.get("result") == "PASSED":
+                                    result_cell.fill = passed_fill
+                                elif test.get("result") == "FAILED":
+                                    result_cell.fill = failed_fill
+                                else:
+                                    result_cell.fill = error_fill
+
+                                ws.cell(row=row_num, column=4).value = test.get(
+                                    "reason", "")
+                                ws.cell(row=row_num, column=4).alignment = Alignment(
+                                    wrap_text=True)
+
+                                # Add borders to all cells in this row
+                                for col in range(1, 5):
+                                    ws.cell(row=row_num,
+                                            column=col).border = border
+
+                                row_num += 1
+
+                        # Add spacing between students
+                        row_num += 2
+
+            # Save the workbook
+            wb.save(excel_filename)
+            print(f"Results saved to:")
+            print(f"- Excel: {excel_filename}")
+        except json.JSONDecodeError as e:
+            print(f"Error: Invalid JSON format: {e}")
     except requests.exceptions.RequestException as e:
         print(f"Error making request to webhook: {e}")
     except Exception as e:
