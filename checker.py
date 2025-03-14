@@ -1,4 +1,3 @@
-
 from enum import Enum
 import os
 import sys
@@ -14,7 +13,7 @@ from datetime import datetime
 import openpyxl
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
-from utils.consignas import EJOB_1_B 
+from utils.consignas import EJOB_1_B
 
 UTEST_DIR = "tests"
 UTEST_FILENAME = "ejB.test.py"
@@ -329,7 +328,6 @@ if __name__ == "__main__":
         # Process each item in the response data
         if "data" in response_data:
             for item in response_data["data"]:
-                # Format source code to be more readable
                 if "exam" in item:
                     item["exam"] = item["exam"].encode().decode(
                         "unicode_escape")
@@ -337,7 +335,6 @@ if __name__ == "__main__":
                     item["testCode"] = item["testCode"].encode().decode(
                         "unicode_escape")
 
-                # Format test results to be more readable
                 for test in item.get("results", []):
                     if "reason" in test:
                         test["reason"] = test["reason"].encode().decode(
