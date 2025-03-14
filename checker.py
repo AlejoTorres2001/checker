@@ -10,15 +10,19 @@ import unittest
 from unittest.mock import patch
 from dotenv import load_dotenv
 import requests
-import os
 from datetime import datetime
-
-load_dotenv()
+import openpyxl
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
+from utils.consignas import EJOB_1_B 
 
 UTEST_DIR = "tests"
 UTEST_FILENAME = "ejB.test.py"
 EXAMS_DIR = "parciales"
-ASSIGNMENT = "Dada una matriz (de string) que contiene palabras. Realizar un programa que realice un menú queinvoque a procedimientos o funciones para:Cargar la matrizMostrar las palabras palíndromas indicando la fila y columna donde se encuentren dichaspalabras.Mostrar las palabras con más caracteresMostrar las palabras que se repiten. "
+ASSIGNMENT = EJOB_1_B
+
+
+load_dotenv()
 
 
 class TestResult(Enum):
