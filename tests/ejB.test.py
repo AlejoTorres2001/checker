@@ -3,7 +3,6 @@ from unittest.mock import patch
 import io
 import sys
 
-# Se asume que las funciones se han definido en el mismo archivo o se importan de otro módulo:
 #! Necesaria para checker.py
 from exam import load_matrix, show_palindrome, show_longest_word, show_duplicated_words, menu
 
